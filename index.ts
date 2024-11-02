@@ -1,84 +1,87 @@
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
-import path from 'path';
-import fs from 'fs';
+// import { generateDependencyReport } from '@discordjs/voice';
+import {
+	Client,
+	GatewayIntentBits,
+	REST,
+	Routes,
+	Collection,
+	ClientOptions,
+} from 'discord.js';
 import dotenv from 'dotenv';
-import { pathToFileURL } from 'url';
+import fs from 'fs';
+import path from 'path';
+
 dotenv.config();
+// console.log(generateDependencyReport()); to know if you have all the pre requirements
+class ExtendedClient extends Client {
+	commands: Collection<string, any>;
 
-interface ExtendedClient extends Client {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  commands: Collection<string, any>;
+	constructor(options: ClientOptions) {
+		super(options);
+		this.commands = new Collection();
+	}
 }
 
-declare module 'discord.js' {
-  interface Client {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    commands: Collection<string, any>;
-  }
+const client = new ExtendedClient({
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+});
+
+// Collection to store commands
+client.commands = new Collection<string, any>();
+
+// Dynamically load command files
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs
+	.readdirSync(commandsPath)
+	.filter(file => file.endsWith('.js'));
+
+const commands = [];
+for (const file of commandFiles) {
+	const filePath = path.join(commandsPath, file);
+	const command = require(filePath);
+	// Store the command in the collection
+	client.commands.set(command.data.name, command);
+	// Prepare for API registration
+	commands.push(command.data.toJSON());
 }
 
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
-}) as ExtendedClient;
-
-client.commands = new Collection();
-
-const foldersPath = path.join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
+// Register commands with Discord API
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN!);
 
 (async () => {
-  for (const folder of commandFolders) {
-    const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs
-      .readdirSync(commandsPath)
-      .filter(file => file.endsWith('.js'));
-    for (const file of commandFiles) {
-      const filePath = path.join(commandsPath, file);
-      const fileUrl = pathToFileURL(filePath).href;
-      const command = await import(fileUrl);
-      // Set a new item in the Collection with the key as the command name and the value as the exported module
-      if ('data' in command && 'execute' in command) {
-        client.commands.set(command.data.name, command);
-        console.log(`Loaded command: ${command.data.name}`);
-      } else {
-        console.log(
-          `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
-        );
-      }
-    }
-  }
+	try {
+		await rest.put(Routes.applicationCommands(process.env.CLIENT_ID!), {
+			body: commands,
+		});
+		console.log('Successfully registered application commands.');
+	} catch (error) {
+		console.error('Error registering commands:', error);
+	}
 })();
 
-client.once(Events.ClientReady, readyClient => {
-  console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+// Event listener for interactions
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isChatInputCommand()) return;
+
+	const command = client.commands.get(interaction.commandName);
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch (error) {
+		console.error(
+			`Error executing ${interaction.commandName} command:`,
+			error
+		);
+		await interaction.reply({
+			content: 'There was an error executing that command.',
+			ephemeral: true,
+		});
+	}
 });
 
-client.login(process.env.TOKEN);
-
-client.on(Events.InteractionCreate, async interaction => {
-  if (!interaction.isChatInputCommand()) return;
-
-  const command = interaction.client.commands.get(interaction.commandName);
-
-  if (!command) {
-    console.error(`No command matching ${interaction.commandName} was found.`);
-    return;
-  }
-
-  try {
-    await command.execute(interaction);
-  } catch (error) {
-    console.error(error);
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp({
-        content: 'There was an error while executing this command!',
-        ephemeral: true,
-      });
-    } else {
-      await interaction.reply({
-        content: 'There was an error while executing this command!',
-        ephemeral: true,
-      });
-    }
-  }
+client.once('ready', () => {
+	console.log('Bot is online!');
 });
+
+client.login(process.env.DISCORD_TOKEN);
