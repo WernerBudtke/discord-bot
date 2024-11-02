@@ -1,6 +1,6 @@
 {
   "name": "discord-music-bot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A simple discord music bot",
   "type": "module",
   "scripts": {
