@@ -10,6 +10,7 @@ import {
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 dotenv.config();
 // console.log(generateDependencyReport()); to know if you have all the pre requirements
@@ -30,7 +31,11 @@ const client = new ExtendedClient({
 client.commands = new Collection<string, any>();
 
 // Dynamically load command files
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const commandsPath = path.join(__dirname, 'commands');
+
 const commandFiles = fs
 	.readdirSync(commandsPath)
 	.filter(file => file.endsWith('.js'));
@@ -38,7 +43,7 @@ const commandFiles = fs
 const commands = [];
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
+	const command = await import(pathToFileURL(filePath).href);
 	// Store the command in the collection
 	client.commands.set(command.data.name, command);
 	// Prepare for API registration
