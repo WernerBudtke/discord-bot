@@ -14,21 +14,7 @@
 		"sourceType": "module"
 	},
 	"rules": {
-    "prettier/prettier": [
-      "error",
-      {
-        "arrowParens": "avoid",
-        "bracketSpacing": true,
-        "endOfLine": "crlf",
-        "semi": true,
-        "singleQuote": true,
-        "tabWidth": 4,
-        "useTabs": true,
-        "trailingComma": "es5",
-        "printWidth": 80,
 		"@typescript-eslint/no-explicit-any": "off",
 		"@typescript-eslint/no-require-imports": "off"
-      }
-    ]
-  }
+	}
 }

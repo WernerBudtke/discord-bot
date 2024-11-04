@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // import { generateDependencyReport } from '@discordjs/voice';
 import {
 	Client,
