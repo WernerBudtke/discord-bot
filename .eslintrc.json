@@ -1,6 +1,10 @@
 {
 	"parser": "@typescript-eslint/parser",
-	"extends": ["eslint:recommended","plugin:@typescript-eslint/recommended","plugin:prettier/recommended"],
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended",
+		"plugin:prettier/recommended"
+	],
 	"env": {
 		"node": true,
 		"es6": true
@@ -28,7 +32,10 @@
 		"no-inline-comments": "off",
 		"no-lonely-if": "error",
 		"no-multi-spaces": "error",
-		"no-multiple-empty-lines": ["error", { "max": 2, "maxEOF": 1, "maxBOF": 0 }],
+		"no-multiple-empty-lines": [
+			"error",
+			{ "max": 2, "maxEOF": 1, "maxBOF": 0 }
+		],
 		"no-shadow": ["error", { "allow": ["err", "resolve", "reject"] }],
 		"no-trailing-spaces": ["error"],
 		"no-var": "error",
@@ -37,17 +44,20 @@
 		"quotes": ["error", "single"],
 		"semi": ["error", "always"],
 		"space-before-blocks": "error",
-		"space-before-function-paren": ["error", {
-			"anonymous": "never",
-			"named": "never",
-			"asyncArrow": "always"
-		}],
+		"space-before-function-paren": [
+			"error",
+			{
+				"anonymous": "never",
+				"named": "never",
+				"asyncArrow": "always"
+			}
+		],
 		"space-in-parens": "error",
 		"space-infix-ops": "error",
 		"space-unary-ops": "error",
 		"spaced-comment": "error",
 		"yoda": "error",
 		"@typescript-eslint/no-explicit-any": "off",
-    	"@typescript-eslint/no-require-imports": "off"
+		"@typescript-eslint/no-require-imports": "off"
 	}
 }

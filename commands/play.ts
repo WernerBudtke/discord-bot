@@ -65,7 +65,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		// Create an audio player and resource
 		const player = createAudioPlayer();
 		const resource = createAudioResource(
-			ytdl(streamUrl, { filter: 'audioonly' })
+			ytdl(streamUrl, {
+				filter: 'audioonly',
+				highWaterMark: 1 << 62,
+				liveBuffer: 1 << 62,
+				dlChunkSize: 0,
+				quality: 'lowestaudio',
+			})
 		);
 		player.play(resource);
 		connection.subscribe(player);
@@ -86,3 +92,4 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 		);
 	}
 }
+
